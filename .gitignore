@@ -1,1 +1,3 @@
 .idea
+.tetrika_tt_venv/
+*__pycache__*
