@@ -1,32 +1,44 @@
 import requests
-import json
-import pprint
 from bs4 import BeautifulSoup
+import csv
 
-# URL API Википедии
-url = "https://ru.wikipedia.org/w/index.php"
 
-# Параметры запроса
-params = {
-    "title": "Категория:Животные_по_алфавиту",
-}
+def write_dict_into_csv(target_dict: dict, filename: str):
+    with open(filename, 'a', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f)
+        for name in target_dict:
+            writer.writerow([name, target_dict[name]])
 
-# Отправляем HTTP-запрос и получаем ответ
-response = requests.get(url, params=params)
 
-# Проверяем, что ответ получен успешно
-if response.status_code == 200:
-    # Парсим ответ в JSON
-    # pprint.pprint(response.text)
-    #
-    soup = BeautifulSoup(response.text, 'html.parser')
+def get_wiki_beasts():
+    beasts = {}
 
-    generated_categories_div = soup.find('div', class_='mw-category-generated')
-    animal_category_div = generated_categories_div.find('div', id='mw-pages')
-    # ul = animal_category_div.find('ul')
-    li_count = len(animal_category_div.find_all('li'))
+    site = "https://ru.wikipedia.org"
+    url = site + "/w/index.php"
+    params = {
+        "title": "Категория:Животные_по_алфавиту",
+    }
 
-    print(li_count)
+    while url:
+        # Отправляем HTTP-запрос и получаем ответ
+        response = requests.get(url, params=params)
 
-else:
-    print("Ошибка получения страницы")
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'lxml')
+
+            beasts_section = soup.find('div', class_='mw-category-generated').find('div', id='mw-pages')
+            beast_categories = beasts_section.find_all('div', class_='mw-category-group')
+            for beasts_list in beast_categories:
+                category_letter = beasts_list.find('h3').get_text()
+                if category_letter not in beasts:
+                    beasts[category_letter] = 0
+                beasts[category_letter] += len(beasts_list.find_all('li'))
+
+            if next_page_btn := beasts_section.find('a', text='Следующая страница'):
+                url = site + next_page_btn['href']
+            else:
+                url = None
+        else:
+            print("Ошибка получения страницы")
+    filename = 'beasts.csv'
+    write_dict_into_csv(beasts, filename)

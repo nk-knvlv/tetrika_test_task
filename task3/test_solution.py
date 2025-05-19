@@ -1,24 +1,13 @@
-from solution import strict
-import pytest
+import csv
 
 
-@pytest.mark.parametrize(
-    "arg_1, arg_2, arg_1_type, arg_2_type, expected_result", [
-        (1, 2, int, int, '1 & 2'),
-        (1, 2, int, float, ValueError),
-        (True, 2, bool, bool, ValueError),
-        ('1', 2, str, int, '1 & 2'),
-        (1.3, False, str, bool, ValueError),
-    ]
-)
-def test_strict(arg_1, arg_2, arg_1_type, arg_2_type, expected_result):
-    @strict
-    def get_sum_str(a: arg_1_type, b: arg_2_type) -> str:
-        return f'{a} & {b}'
+def write_dict_into_csv(target_dict: dict, filename: str):
+    with open(filename, 'a', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f)
+        for name in target_dict:
+            writer.writerow([target_dict[name]])
 
-    try:
-        result = get_sum_str(arg_1, arg_2)
-    except ValueError:
-        result = ValueError
 
-    assert result == expected_result
+animals = {'A': 213, 'B': 3245}
+
+write_dict_into_csv(animals, 'beasts2.csv')

@@ -1,24 +1,21 @@
-from solution import strict
+from solution import get_wiki_beasts
 import pytest
+import os
+import csv
 
 
-@pytest.mark.parametrize(
-    "arg_1, arg_2, arg_1_type, arg_2_type, expected_result", [
-        (1, 2, int, int, '1 & 2'),
-        (1, 2, int, float, ValueError),
-        (True, 2, bool, bool, ValueError),
-        ('1', 2, str, int, '1 & 2'),
-        (1.3, False, str, bool, ValueError),
-    ]
-)
-def test_strict(arg_1, arg_2, arg_1_type, arg_2_type, expected_result):
-    @strict
-    def get_sum_str(a: arg_1_type, b: arg_2_type) -> str:
-        return f'{a} & {b}'
+def test_get_wiki_beasts():
+    file_path = "beasts.csv"
+    assert os.path.exists(file_path) is False
+    get_wiki_beasts()
+    assert os.path.exists(file_path) is True
+    assert os.stat("beasts.csv").st_size is not 0
 
-    try:
-        result = get_sum_str(arg_1, arg_2)
-    except ValueError:
-        result = ValueError
+    with open('beasts.csv', 'r', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile)
+        for i, row in enumerate(reader):
+            if i == 3:  # проверяем индекс строки
+                print(row)  # выводим 4 строчку
+                assert row[0] == 'Г'
+                break  # выходим из цикла после вывода 4 строчки
 
-    assert result == expected_result
